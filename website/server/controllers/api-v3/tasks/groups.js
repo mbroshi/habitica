@@ -8,10 +8,13 @@ import {
   NotAuthorized,
 } from '../../../libs/errors';
 import {
+  canNotEditTasks,
   createTasks,
   getTasks,
+} from '../../../libs/tasks';
+import {
   moveTask,
-} from '../../../libs/taskManager';
+} from '../../../libs/tasks/utils';
 import { handleSharedCompletion } from '../../../libs/groupTasks';
 import apiError from '../../../libs/apiError';
 import logger from '../../../libs/logger';
@@ -21,14 +24,6 @@ const requiredGroupFields = '_id leader tasksOrder name';
 const types = Tasks.tasksTypes.map(type => `${type}s`);
 // _allCompletedTodos is currently in BETA and is likely to be removed in future
 types.push('completedTodos', '_allCompletedTodos');
-
-// @TODO abstract this snipped (also see api-v3/tasks.js)
-function canNotEditTasks (group, user, assignedUserId) {
-  const isNotGroupLeader = group.leader !== user._id;
-  const isManager = Boolean(group.managers[user._id]);
-  const userIsAssigningToSelf = Boolean(assignedUserId && user._id === assignedUserId);
-  return isNotGroupLeader && !isManager && !userIsAssigningToSelf;
-}
 
 const api = {};
 
@@ -122,8 +117,9 @@ api.getGroupTasks = {
  * @apiGroup Task
  *
  * @apiParam (Path) {String} taskId The task _id
- * @apiParam (Path) {Number} position Where to move the task (-1 means push to bottom).
- *                                    First position is 0
+ * @apiParam (Path) {Number} position Where to move the task.
+ *                                    0 = top of the list ("push to top").
+ *                                   -1 = bottom of the list ("push to bottom").
  *
  * @apiSuccess {Array} data The new tasks order (group.tasksOrder.{task.type}s)
  */

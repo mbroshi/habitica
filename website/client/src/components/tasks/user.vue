@@ -56,9 +56,8 @@
                   class="row"
                   :class="{'no-gutters': !editingTags}"
                 >
-                  <template v-if="editingTags && tagsType.key === 'tags'">
+                  <template v-if="editingTags && tagsType.key !== 'groups'">
                     <draggable
-                      v-if="tagsType.key === 'tags'"
                       v-model="tagsSnap[tagsType.key]"
                       class="row"
                     >
@@ -88,7 +87,7 @@
                           </div>
                         </div>
                       </div>
-                      <div class="col-6 dragSpace">
+                      <div v-if="tagsType.key === 'tags'" class="col-6 dragSpace">
                         <input
                           v-model="newTag"
                           class="new-tag-item edit-tag-item inline-edit-input form-control"
@@ -98,30 +97,6 @@
                         >
                       </div>
                     </draggable>
-                  </template>
-                  <template v-if="editingTags && tagsType.key === 'challenges'">
-                    <div
-                      v-for="(tag, tagIndex) in tagsSnap[tagsType.key]"
-                      :key="tag.id"
-                      class="col-6"
-                    >
-                      <div class="inline-edit-input-group tag-edit-item input-group">
-                        <input
-                          v-model="tag.name"
-                          class="tag-edit-input inline-edit-input form-control"
-                          type="text"
-                        >
-                        <div
-                          class="input-group-append"
-                          @click="removeTag(tagIndex, tagsType.key)"
-                        >
-                          <div
-                            class="svg-icon destroy-icon"
-                            v-html="icons.destroy"
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
                   </template>
                   <template v-if="!editingTags || tagsType.key === 'groups'">
                     <div
@@ -249,10 +224,6 @@
     padding-left: 12px;
     padding-right: 12px;
     padding-top: 16px;
-  }
-
-  .input-search, .search-button {
-    height: 40px;
   }
 
   .tasks-navigation {
@@ -500,6 +471,11 @@ export default {
       this.searchTextThrottled = this.searchText.toLowerCase();
     }, 250),
   },
+  mounted () {
+    this.$store.dispatch('common:setTitle', {
+      section: this.$t('tasks'),
+    });
+  },
   methods: {
     ...mapActions({ setUser: 'user:set' }),
     checkMouseOver: throttle(function throttleSearch () {
@@ -519,7 +495,13 @@ export default {
     removeTag (index, key) {
       const tagId = this.tagsSnap[key][index].id;
       const indexInSelected = this.selectedTags.indexOf(tagId);
-      if (indexInSelected !== -1) this.$delete(this.selectedTags, indexInSelected);
+      const indexInTempSelected = this.temporarilySelectedTags.indexOf(tagId);
+      if (indexInSelected !== -1) {
+        this.$delete(this.selectedTags, indexInSelected);
+      }
+      if (indexInTempSelected !== -1) {
+        this.$delete(this.temporarilySelectedTags, indexInTempSelected);
+      }
       this.$delete(this.tagsSnap[key], index);
     },
     saveTags () {
@@ -549,7 +531,7 @@ export default {
     createTask (type) {
       this.openCreateBtn = false;
       this.creatingTask = taskDefaults({ type, text: '' }, this.user);
-      this.creatingTask.tags = this.selectedTags;
+      this.creatingTask.tags = this.selectedTags.slice();
 
       // Necessary otherwise the first time the modal is not rendered
       Vue.nextTick(() => {

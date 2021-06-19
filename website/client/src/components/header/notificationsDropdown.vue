@@ -114,10 +114,7 @@
 <script>
 import { mapState, mapActions } from '@/libs/store';
 import * as quests from '@/../../common/script/content/quests';
-import {
-  hasCompletedOnboarding,
-  hasActiveOnboarding,
-} from '@/../../common/script/libs/onboarding';
+import { hasCompletedOnboarding } from '@/../../common/script/libs/onboarding';
 import notificationsIcon from '@/assets/svg/notifications.svg';
 import MenuDropdown from '../ui/customMenuDropdown';
 import MessageCount from './messageCount';
@@ -149,6 +146,7 @@ import ACHIEVEMENT_MIND_OVER_MATTER from './notifications/mindOverMatter';
 import ONBOARDING_COMPLETE from './notifications/onboardingComplete';
 import GIFT_ONE_GET_ONE from './notifications/g1g1';
 import OnboardingGuide from './onboardingGuide';
+import DROP_CAP_REACHED from './notifications/dropCapReached';
 
 export default {
   components: {
@@ -178,6 +176,7 @@ export default {
     OnboardingGuide,
     ONBOARDING_COMPLETE,
     GIFT_ONE_GET_ONE,
+    DROP_CAP_REACHED,
   },
   data () {
     return {
@@ -191,7 +190,7 @@ export default {
       openStatus: undefined,
       actionableNotifications: [
         'GUILD_INVITATION', 'PARTY_INVITATION', 'CHALLENGE_INVITATION',
-        'QUEST_INVITATION', 'GROUP_TASK_APPROVAL', 'GROUP_TASK_APPROVED',
+        'QUEST_INVITATION', 'GROUP_TASK_APPROVED',
       ],
       // A list of notifications handled by this component,
       // listed in the order they should appear in the notifications panel.
@@ -203,7 +202,7 @@ export default {
         'GROUP_TASK_CLAIMED', 'NEW_MYSTERY_ITEMS', 'CARD_RECEIVED',
         'NEW_INBOX_MESSAGE', 'NEW_CHAT_MESSAGE', 'UNALLOCATED_STATS_POINTS',
         'ACHIEVEMENT_JUST_ADD_WATER', 'ACHIEVEMENT_LOST_MASTERCLASSER', 'ACHIEVEMENT_MIND_OVER_MATTER',
-        'VERIFY_USERNAME', 'ONBOARDING_COMPLETE',
+        'VERIFY_USERNAME', 'ONBOARDING_COMPLETE', 'DROP_CAP_REACHED',
       ],
     };
   },
@@ -298,7 +297,7 @@ export default {
       return this.$store.getters['members:hasClass'](this.user);
     },
     showOnboardingGuide () {
-      return hasActiveOnboarding(this.user) && !hasCompletedOnboarding(this.user);
+      return !hasCompletedOnboarding(this.user);
     },
   },
   mounted () {

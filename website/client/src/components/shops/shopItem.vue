@@ -3,7 +3,9 @@
     <div
       :id="itemId"
       class="item-wrapper"
+      tabindex="0"
       @click="click()"
+      @keypress.enter="click()"
     >
       <div
         class="item"
@@ -63,7 +65,7 @@
     <b-popover
       v-if="showPopover"
       :target="itemId"
-      triggers="hover"
+      triggers="hover focus"
       :placement="popoverPosition"
     >
       <slot
@@ -105,7 +107,7 @@
           </div>
         </div>
         <div
-          v-if="item.event"
+          v-if="item.event && item.purchaseType !== 'quests'"
           :class="item.purchaseType === 'gear' ? 'mt-4' : 'mt-2'"
         >
           {{ limitedString }}
@@ -248,8 +250,6 @@ import EquipmentAttributesPopover from '@/components/inventory/equipment/attribu
 
 import QuestInfo from './quests/questInfo.vue';
 
-import seasonalShopConfig from '@/../../common/script/libs/shops-seasonal.config';
-
 export default {
   components: {
     EquipmentAttributesPopover,
@@ -289,16 +289,18 @@ export default {
     },
   },
   data () {
-    return Object.freeze({
+    return {
       itemId: uuid(),
-      icons: {
+      icons: Object.freeze({
         gems: svgGem,
         gold: svgGold,
         lock: svgLock,
         hourglasses: svgHourglasses,
         clock: svgClock,
-      },
-    });
+      }),
+      timer: '',
+      limitedString: '',
+    };
   },
   computed: {
     showNotes () {
@@ -312,10 +314,10 @@ export default {
       }
       return 'gold';
     },
-    limitedString () {
-      return this.item.owned === false ? ''
-        : this.$t('limitedOffer', { date: moment(seasonalShopConfig.dateRange.end).format('LL') });
-    },
+  },
+  mounted () {
+    this.countdownString();
+    this.timer = setInterval(this.countdownString, 1000);
   },
   methods: {
     click () {
@@ -336,6 +338,36 @@ export default {
         locked: this.item.locked,
       };
     },
+    countdownString () {
+      if (!this.item.event) return;
+      const diffDuration = moment.duration(moment(this.item.event.end).diff(moment()));
+
+      if (diffDuration.asSeconds() <= 0) {
+        this.limitedString = this.$t('noLongerAvailable');
+      } else if (diffDuration.days() > 0) {
+        this.limitedString = this.$t('limitedAvailabilityDays', {
+          days: moment(this.item.event.end).diff(moment(), 'days'),
+          hours: diffDuration.hours(),
+          minutes: diffDuration.minutes(),
+        });
+      } else if (diffDuration.asMinutes() > 2) {
+        this.limitedString = this.$t('limitedAvailabilityHours', {
+          hours: diffDuration.hours(),
+          minutes: diffDuration.minutes(),
+        });
+      } else {
+        this.limitedString = this.$t('limitedAvailabilityMinutes', {
+          minutes: diffDuration.minutes(),
+          seconds: diffDuration.seconds(),
+        });
+      }
+    },
+    cancelAutoUpdate () {
+      clearInterval(this.timer);
+    },
+  },
+  beforeDestroy () {
+    this.cancelAutoUpdate();
   },
 };
 </script>

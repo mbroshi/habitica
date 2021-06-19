@@ -7,7 +7,9 @@
     <span
       v-if="withPin"
       class="badge-dialog"
+      tabindex="0"
       @click.prevent.stop="togglePinned()"
+      @keypress.enter.prevent.stop="togglePinned()"
     >
       <pin-badge
         :pinned="isPinned"
@@ -17,7 +19,9 @@
       <span
         class="svg-icon icon-12 close-icon"
         aria-hidden="true"
+        tabindex="0"
         @click="hideDialog()"
+        @keypress.enter="hideDialog()"
         v-html="icons.close"
       ></span>
     </div>
@@ -145,25 +149,22 @@
           v-else
           class="btn btn-primary"
           :disabled="item.key === 'gem' && gemsLeft === 0 ||
-            attemptingToPurchaseMoreGemsThanAreLeft || numberInvalid || item.locked"
+            attemptingToPurchaseMoreGemsThanAreLeft || numberInvalid || item.locked ||
+            !preventHealthPotion ||
+            !enoughCurrency(getPriceClass(), item.value * selectedAmountToBuy)"
           :class="{'notEnough': !preventHealthPotion ||
             !enoughCurrency(getPriceClass(), item.value * selectedAmountToBuy)}"
+          tabindex="0"
           @click="buyItem()"
         >
           {{ $t('buyNow') }}
         </button>
       </div>
     </div>
-    <div
+    <countdown-banner
       v-if="item.event && item.owned == null"
-      class="limitedTime"
-    >
-      <span
-        class="svg-icon inline icon-16 clock-icon"
-        v-html="icons.clock"
-      ></span>
-      <span class="limitedString">{{ limitedString }}</span>
-    </div>
+      :endDate = "endDate"
+    />
     <div
       v-if="item.key === 'rebirth_orb' && item.value > 0 && user.stats.lvl >= 100"
       class="free-rebirth d-flex align-items-center"
@@ -192,7 +193,7 @@
 
 <style lang="scss">
   @import '~@/assets/scss/colors.scss';
-  @import '~@/assets/scss/modal.scss';
+  @import '~@/assets/scss/mixins.scss';
 
   #buy-modal {
     @include centeredModal();
@@ -289,6 +290,10 @@
       margin-top: 24px;
       margin-bottom: 24px;
       min-width: 6rem;
+
+      &:focus {
+        border: 2px solid black;
+      }
     }
 
     .balance {
@@ -311,27 +316,6 @@
     .notEnough {
       pointer-events: none;
       opacity: 0.55;
-    }
-
-    .limitedTime {
-      height: 32px;
-      background-color: $purple-300;
-      width: calc(100% + 30px);
-      margin: 0 -15px; // the modal content has its own padding
-
-      font-size: 12px;
-      line-height: 1.33;
-      text-align: center;
-      color: $white;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .limitedString {
-        height: 16px;
-        margin-left: 8px;
-      }
     }
 
     .attributesGrid {
@@ -363,12 +347,6 @@
 <style lang="scss" scoped>
   @import '~@/assets/scss/colors.scss';
 
-  .close-icon {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-  }
-
   .hourglass-nonsub {
     color: $yellow-5;
     font-size: 12px;
@@ -381,7 +359,6 @@ import size from 'lodash/size';
 import reduce from 'lodash/reduce';
 import moment from 'moment';
 
-import * as Analytics from '@/libs/analytics';
 import spellsMixin from '@/mixins/spells';
 import planGemLimits from '@/../../common/script/libs/planGemLimits';
 import numberInvalid from '@/mixins/numberInvalid';
@@ -395,6 +372,7 @@ import svgWhiteClock from '@/assets/svg/clock-white.svg';
 
 import BalanceInfo from './balanceInfo.vue';
 import PinBadge from '@/components/ui/pinBadge';
+import CountdownBanner from './countdownBanner';
 import currencyMixin from './_currencyMixin';
 import notifications from '@/mixins/notifications';
 import buyMixin from '@/mixins/buy';
@@ -428,6 +406,7 @@ export default {
     Item,
     Avatar,
     PinBadge,
+    CountdownBanner,
   },
   mixins: [buyMixin, currencyMixin, notifications, numberInvalid, spellsMixin],
   props: {
@@ -458,6 +437,7 @@ export default {
 
       selectedAmountToBuy: 1,
       isPinned: false,
+      endDate: seasonalShopConfig.dateRange.end,
     };
   },
   computed: {
@@ -489,9 +469,6 @@ export default {
         return this.item.notes();
       }
       return this.item.notes;
-    },
-    limitedString () {
-      return this.$t('limitedOffer', { date: moment(seasonalShopConfig.dateRange.end).format('LL') });
     },
     gemsLeft () {
       if (!this.user.purchased.plan) return 0;
@@ -560,12 +537,18 @@ export default {
         }
 
         const ownedPets = reduce(this.user.items.pets, (sum, petValue, petKey) => {
-          if (petKey.includes(this.item.key) && petValue > 0) return sum + 1;
+          if (petKey.includes(this.item.key) && petValue > 0
+            && !petKey.includes('JackOLantern') // Jack-O-Lantern has "Ghost" version
+            && !petKey.includes('RoyalPurple') // to avoid counting Royal Purple Gryphons for gryphon eggs
+          ) return sum + 1;
           return sum;
         }, 0);
 
         const ownedMounts = reduce(this.user.items.mounts, (sum, mountValue, mountKey) => {
-          if (mountKey.includes(this.item.key) && mountValue === true) return sum + 1;
+          if (mountKey.includes(this.item.key) && mountValue === true
+            && !mountKey.includes('JackOLantern')
+            && !mountKey.includes('RoyalPurple')
+          ) return sum + 1;
           return sum;
         }, 0);
 
@@ -602,14 +585,6 @@ export default {
       }
     },
     purchaseGems () {
-      if (this.item.key === 'rebirth_orb') {
-        Analytics.track({
-          hitType: 'event',
-          eventCategory: 'button',
-          eventAction: 'click',
-          eventLabel: 'Gems > Rebirth',
-        });
-      }
       this.$root.$emit('bv::show::modal', 'buy-gems');
     },
     togglePinned () {

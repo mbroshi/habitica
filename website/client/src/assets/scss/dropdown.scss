@@ -1,13 +1,12 @@
 .dropdown > .btn {
-  padding: 0.25rem 0.75rem;
+  padding: 0.219rem 0.75rem;
   font-family: 'Roboto', sans-serif;
   font-size: 14px;
   font-weight: normal;
-  line-height: 1.43;
 }
 
 .dropdown-toggle:hover {
-  --caret-color: #{$purple-200};
+  --caret-color: #{$purple-300};
 }
 
 .dropdown.show > .dropdown-toggle:not(.btn-success) {
@@ -16,7 +15,7 @@
   box-shadow: none;
 
   &::after {
-    --caret-color: #{$purple-200};
+    --caret-color: #{$purple-300};
   }
 }
 
@@ -25,6 +24,8 @@
   border-right: 5px solid transparent;
   border-left: 5px solid transparent;
   vertical-align: 0;
+  margin-left: 1rem;
+  margin-bottom: 0.1rem;
 }
 
 .dropdown-menu {
@@ -38,13 +39,14 @@
 // shared dropdown-item styles
 .dropdown-item {
   // header items & not selectList-items
+
   padding-left: 24px;
   padding-top: 8px;
   padding-bottom: 8px;
 
   font-size: 14px;
   line-height: 1.71;
-  color: $gray-50;
+  color: $gray-50 !important;
   cursor: pointer;
 
   &:focus {
@@ -52,18 +54,36 @@
     background-color: inherit;
   }
 
-
   &:active, &:hover, &:focus, &.active {
-    background-color: rgba($purple-600, 0.32);
-    color: $purple-200;
+    background-color: inherit !important;
+    color: var(--hover-color, $purple-300) !important;
+  }
+
+  &:hover {
+    background-color: var(--hover-background, rgba($purple-600, 0.25)) !important;
   }
 
   &.dropdown-inactive {
     cursor: default;
 
     &:active, &:hover, &.active {
-      background-color: inherit;
-      color: inherit;
+      background-color: inherit !important;
+      color: inherit !important;
+    }
+  }
+
+  .with-icon {
+    display: flex;
+    align-items: center;
+
+    .svg-icon {
+      margin: 0 0.5rem 0 0;
+    }
+  }
+
+  &:not(:hover) {
+    .with-icon .svg-icon {
+      color: $gray-200;
     }
   }
 }
@@ -75,10 +95,17 @@
 .dropdown-label {
   font-size: 14px;
   font-weight: bold;
-  line-height: 1.43;
-  color: $gray-10;
+  line-height: 1.71;
   margin-right: 20px;
   margin-left: 20px;
+
+  height: 1.5rem;
+  font-stretch: normal;
+  font-style: normal;
+  text-align: right;
+
+  margin-top: calc(0.25rem + 1px); // Padding of the dropdown buttons + button border width
+  margin-bottom: 0.25rem;
 }
 
 .dropdown-icon-item {
@@ -108,7 +135,7 @@
   }
 
   .dropdown-menu.show {
-    width: 100% !important;
+    min-width: 100% !important;
   }
 }
 
@@ -118,7 +145,10 @@
   height: 32px;
 
   &:active, &:hover, &:focus, &.active {
-    background-color: rgba($purple-600, 0.25);
     color: $purple-300;
+  }
+
+  &:hover {
+    background-color: rgba($purple-600, 0.25);
   }
 }

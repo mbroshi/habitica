@@ -356,7 +356,15 @@
     "hatchingPotionAurora": "Aurora",
     "hatchingPotionBirchBark": "Corteza de abedul",
     "hatchingPotionRuby": "Rubí",
-    "hatchingPotionSandSculpture": "Escultura de arena",
+    "hatchingPotionSandSculpture": "Escultura de Arena",
     "hatchingPotionFluorite": "Fluorita",
-    "hatchingPotionDessert": "Golosina"
+    "hatchingPotionDessert": "Confección",
+    "hatchingPotionVampire": "Vampiro",
+    "hatchingPotionTurquoise": "Turquesa",
+    "hatchingPotionWindup": "De Cuerda",
+    "hatchingPotionBlackPearl": "Perla Negra",
+    "hatchingPotionAutumnLeaf": "Hoja de Otoño",
+    "hatchingPotionStainedGlass": "Vidrio Pintado",
+    "hatchingPotionPolkaDot": "con Lunares",
+    "hatchingPotionMossyStone": "Piedras Musgosa"
 }

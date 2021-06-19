@@ -94,7 +94,7 @@ function toSourceMapRegex (token) {
   } else if (type === 'code_inline') {
     regexStr = `${markup} ?${contentRegex} ?${markup}`;
   } else if (type === 'link_open') {
-    const texts = token.textContents.map(escapeRegExp);
+    const texts = token.textContents ? token.textContents.map(escapeRegExp) : [''];
     regexStr = markup === 'linkify' || markup === 'autolink' ? texts[0]
       : `\\[[^\\]]*${texts.join('[^\\]]*')}[^\\]]*\\]\\([^)]*\\)`;
   } else {
@@ -144,6 +144,11 @@ function findTextBlocks (text) {
   return new TextBlocks(blocks);
 }
 
+function determineBaseUrl () {
+  // eslint-disable-next-line no-process-env
+  return process.env.NODE_ENV === 'production' ? 'https://habitica.com' : '';
+}
+
 /**
  * Replaces `@user` mentions by `[@user](/profile/{user-id})` markup to inject
  * a link towards the user's profile page.
@@ -164,10 +169,11 @@ export default async function highlightMentions (text) {
       .select(['auth.local.username', '_id', 'preferences.pushNotifications', 'pushDevices', 'party', 'guilds'])
       .lean()
       .exec();
+    const baseUrl = determineBaseUrl();
     members.forEach(member => {
       const { username } = member.auth.local;
       const regex = new RegExp(`@${username}(?![\\-\\w])`, 'g');
-      const replacement = `[@${username}](/profile/${member._id})`;
+      const replacement = `[@${username}](${baseUrl}/profile/${member._id})`;
 
       textBlocks.transformValidBlocks(blockText => blockText.replace(regex, replacement));
     });

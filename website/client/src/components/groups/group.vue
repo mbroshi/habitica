@@ -4,9 +4,9 @@
     class="row"
   >
     <group-form-modal v-if="isParty" />
-    <start-quest-modal :group="group" />
-    <quest-details-modal :group="group" />
+    <quest-detail-modal :group="group" />
     <participant-list-modal :group="group" />
+    <invitation-list-modal :group="group" />
     <group-gems-modal />
     <div class="col-12 col-sm-8 standard-page">
       <div class="row">
@@ -25,43 +25,41 @@
         <div class="col-12 col-md-6">
           <div class="row icon-row">
             <div
-              class="col-4 offset-4"
-              :class="{ 'offset-8': isParty }"
+              class="item-with-icon"
+              tabindex="0"
+              role="button"
+              @keyup.enter="showMemberModal()"
+              @click="showMemberModal()"
             >
               <div
-                class="item-with-icon"
-                @click="showMemberModal()"
+                v-if="group.memberCount > 1000"
+                class="svg-icon shield"
+                v-html="icons.goldGuildBadgeIcon"
+              ></div>
+              <div
+                v-if="group.memberCount > 100 && group.memberCount < 999"
+                class="svg-icon shield"
+                v-html="icons.silverGuildBadgeIcon"
+              ></div>
+              <div
+                v-if="group.memberCount < 100"
+                class="svg-icon shield"
+                v-html="icons.bronzeGuildBadgeIcon"
+              ></div>
+              <span class="number">{{ group.memberCount | abbrNum }}</span>
+              <div
+                v-once
+                class="member-list label"
               >
-                <div
-                  v-if="group.memberCount > 1000"
-                  class="svg-icon shield"
-                  v-html="icons.goldGuildBadgeIcon"
-                ></div>
-                <div
-                  v-if="group.memberCount > 100 && group.memberCount < 999"
-                  class="svg-icon shield"
-                  v-html="icons.silverGuildBadgeIcon"
-                ></div>
-                <div
-                  v-if="group.memberCount < 100"
-                  class="svg-icon shield"
-                  v-html="icons.bronzeGuildBadgeIcon"
-                ></div>
-                <span class="number">{{ group.memberCount | abbrNum }}</span>
-                <div
-                  v-once
-                  class="member-list label"
-                >
-                  {{ $t('memberList') }}
-                </div>
+                {{ $t('memberList') }}
               </div>
             </div>
-            <div
-              v-if="!isParty"
-              class="col-4"
-            >
+            <div v-if="!isParty">
               <div
                 class="item-with-icon"
+                tabindex="0"
+                role="button"
+                @keyup.enter="showGroupGems()"
                 @click="showGroupGems()"
               >
                 <div
@@ -98,99 +96,21 @@
         </template>
       </chat>
     </div>
-    <div class="col-12 col-sm-4 sidebar">
-      <div
-        class="row"
-        :class="{'guild-background': !isParty}"
-      >
-        <div class="col-12 buttons-wrapper">
-          <div class="button-container">
-            <button
-              v-if="isLeader && !group.purchased.active && group.privacy === 'private'"
-              class="btn btn-success btn-success"
-              @click="upgradeGroup()"
-            >
-              {{ $t('upgrade') }}
-            </button>
-          </div>
-          <div class="button-container">
-            <button
-              v-if="isLeader || isAdmin"
-              v-once
-              class="btn btn-primary"
-              b-btn="b-btn"
-              @click="updateGuild"
-            >
-              {{ $t('edit') }}
-            </button>
-          </div>
-          <div class="button-container">
-            <button
-              v-if="!isMember"
-              class="btn btn-success btn-success"
-              @click="join()"
-            >
-              {{ $t('join') }}
-            </button>
-          </div>
-          <div class="button-container">
-            <button
-              v-once
-              class="btn btn-primary"
-              @click="showInviteModal()"
-            >
-              {{ $t('invite') }}
-            </button>
-            <!-- @TODO: hide the invitation button
-              if there's an active group plan and the player is not the leader-->
-          </div>
-          <div class="button-container">
-            <!-- @TODO: V2 button.btn.btn-primary(v-once, v-if='!isLeader')
-             {{$t('messageGuildLeader')}} // Suggest making the button
-              visible to the leader too - useful for them to test how
-               the feature works or to send a note to themself. -- Alys-->
-          </div>
-          <div class="button-container">
-            <!-- @TODO: V2 button.btn.btn-primary(v-once,
-              v-if='isMember && !isParty') {{$t('donateGems')}}
-              // Suggest removing the isMember restriction
-               - it's okay if non-members donate to a public
-               guild. Also probably allow it for parties
-               if parties can buy imagery. -- Alys-->
-          </div>
-        </div>
-      </div>
-      <div class="px-3 py-3">
-        <quest-sidebar-section
-          v-if="isParty"
-          :group="group"
-        />
-        <sidebar-section
-          v-if="!isParty"
-          :title="$t('guildSummary')"
-        >
-          <p v-markdown="group.summary"></p>
-        </sidebar-section>
-        <sidebar-section :title="$t('groupDescription')">
-          <p v-markdown="group.description"></p>
-        </sidebar-section>
-        <sidebar-section
-          :title="$t('challenges')"
-          :tooltip="$t('challengeDetails')"
-        >
-          <group-challenges :group-id="searchId" />
-        </sidebar-section>
-      </div>
-      <div class="text-center">
-        <button
-          v-if="isMember"
-          class="btn btn-danger"
-          @click="clickLeave()"
-        >
-          {{ isParty ? $t('leaveParty') : $t('leaveGroup') }}
-        </button>
-      </div>
-    </div>
+    <right-sidebar
+      :is-admin="isAdmin"
+      :is-leader="isLeader"
+      :is-member="isMember"
+      :is-party="isParty"
+      :group="group"
+      :search-id="searchId"
+      class="col-12 col-sm-4"
+      @leave="clickLeave()"
+      @join="join()"
+      @messageLeader="messageLeader()"
+      @upgradeGroup="upgradeGroup"
+      @updateGuild="updateGuild"
+      @showInviteModal="showInviteModal()"
+    />
   </div>
 </template>
 
@@ -201,22 +121,10 @@
     .standard-page {
       max-width: calc(100% - 430px);
     }
-
-    .sidebar {
-      max-width: 430px !important;
-    }
   }
 
   h1 {
     color: $purple-200;
-  }
-
-  .button-container {
-    margin-bottom: 1em;
-
-    button {
-      width: 100%;
-    }
   }
 
   .item-with-icon {
@@ -225,9 +133,13 @@
     box-shadow: 0 2px 2px 0 rgba(26, 24, 29, 0.16), 0 1px 4px 0 rgba(26, 24, 29, 0.12);
     padding: 1em;
     text-align: center;
-    min-width: 80px;
-    max-width: 120px;
+    min-width: 120px;
     height: 76px;
+    margin-right: 1rem;
+
+    &:last-of-type {
+      margin-left: 0.5rem;
+    }
 
     .svg-icon.shield, .svg-icon.gem {
       width: 28px;
@@ -252,11 +164,6 @@
     cursor: pointer;
   }
 
-  .sidebar {
-    background-color: $gray-600;
-    padding-bottom: 2em;
-  }
-
   .buttons-wrapper {
     padding: 2.8em 24px 0em 24px;
   }
@@ -274,11 +181,6 @@
       line-height: 1.43;
       color: $gray-50;
     }
-  }
-
-  .guild-background {
-    background-image: url('~@/assets/images/groups/grassy-meadow-backdrop.png');
-    height: 246px;
   }
 
   textarea {
@@ -312,6 +214,7 @@
 
   .icon-row {
     margin-top: 1em;
+    justify-content: flex-end;
 
     .number {
       font-size: 22px;
@@ -387,16 +290,11 @@ import groupUtilities from '@/mixins/groupsUtilities';
 import styleHelper from '@/mixins/styleHelper';
 import { mapState, mapGetters } from '@/libs/store';
 import * as Analytics from '@/libs/analytics';
-import startQuestModal from './startQuestModal';
-import questDetailsModal from './questDetailsModal';
 import participantListModal from './participantListModal';
 import groupFormModal from './groupFormModal';
-import groupChallenges from '../challenges/groupChallenges';
 import groupGemsModal from '@/components/groups/groupGemsModal';
-import questSidebarSection from '@/components/groups/questSidebarSection';
 import markdownDirective from '@/directives/markdown';
 import chat from './chat';
-import sidebarSection from '../sidebarSection';
 import userLink from '../userLink';
 
 import deleteIcon from '@/assets/svg/delete.svg';
@@ -410,17 +308,18 @@ import questBackground from '@/assets/svg/quest-background-border.svg';
 import goldGuildBadgeIcon from '@/assets/svg/gold-guild-badge-small.svg';
 import silverGuildBadgeIcon from '@/assets/svg/silver-guild-badge-small.svg';
 import bronzeGuildBadgeIcon from '@/assets/svg/bronze-guild-badge-small.svg';
+import QuestDetailModal from './questDetailModal';
+import RightSidebar from '@/components/groups/rightSidebar';
+import InvitationListModal from './invitationListModal';
 
 export default {
   components: {
-    startQuestModal,
+    InvitationListModal,
+    QuestDetailModal,
+    RightSidebar,
     groupFormModal,
-    groupChallenges,
-    questDetailsModal,
     participantListModal,
     groupGemsModal,
-    questSidebarSection,
-    sidebarSection,
     userLink,
     chat,
   },
@@ -498,6 +397,11 @@ export default {
     if (!this.searchId) this.searchId = this.groupId;
     await this.fetchGuild();
 
+    const type = this.isParty ? 'party' : 'guilds';
+    this.$store.dispatch('common:setTitle', {
+      section: this.$route.path.startsWith('/group-plans') ? this.$t('groupPlans') : this.$t(type),
+      subSection: this.group.name,
+    });
     this.$root.$on('updatedGroup', this.onGroupUpdate);
   },
   beforeDestroy () {
@@ -505,7 +409,6 @@ export default {
   },
   beforeRouteUpdate (to, from, next) {
     this.$set(this, 'searchId', to.params.groupId);
-
     next();
   },
   methods: {
@@ -515,6 +418,11 @@ export default {
     onGroupUpdate (group) {
       const updatedGroup = extend(this.group, group);
       this.$set(this.group, updatedGroup);
+      const type = this.isParty ? 'party' : 'guilds';
+      this.$store.dispatch('common:setTitle', {
+        section: this.$route.path.startsWith('/group-plans') ? this.$t('groupPlans') : this.$t(type),
+        subSection: group.name,
+      });
     },
 
     /**
@@ -575,13 +483,20 @@ export default {
         this.$root.$emit('bv::show::modal', 'create-party-modal');
         return;
       }
-
       if (this.isParty) {
         await this.$store.dispatch('party:getParty', true);
         this.group = this.$store.state.party.data;
+        this.$store.dispatch('common:setTitle', {
+          section: this.$route.path.startsWith('/group-plans') ? this.$t('groupPlans') : this.$t('party'),
+          subSection: this.group.name,
+        });
       } else {
         const group = await this.$store.dispatch('guilds:getGroup', { groupId: this.searchId });
         this.$set(this, 'group', group);
+        this.$store.dispatch('common:setTitle', {
+          section: this.$route.path.startsWith('/group-plans') ? this.$t('groupPlans') : this.$t('guilds'),
+          subSection: group.name,
+        });
       }
 
       const groupId = this.searchId === 'party' ? this.user.party._id : this.searchId;
@@ -605,13 +520,6 @@ export default {
       await this.$store.dispatch('guilds:join', { groupId: this.group._id, type: 'guild' });
     },
     clickLeave () {
-      Analytics.track({
-        hitType: 'event',
-        eventCategory: 'button',
-        eventAction: 'click',
-        eventLabel: 'Leave Party',
-      });
-
       // @TODO: Get challenges and ask to keep or remove
       if (!window.confirm('Are you sure you want to leave?')) return; // eslint-disable-line no-alert
       const keep = true;
@@ -644,6 +552,9 @@ export default {
     },
     showGroupGems () {
       this.$root.$emit('bv::show::modal', 'group-gems-modal');
+    },
+    messageLeader () {
+      window.open(`/private-messages?uuid=${this.group.leader.id}`);
     },
   },
 };

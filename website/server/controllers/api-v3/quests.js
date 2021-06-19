@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { authWithHeaders } from '../../middlewares/auth';
-import * as analytics from '../../libs/analyticsService';
+import { getAnalyticsServiceByEnvironment } from '../../libs/analyticsService';
 import {
   model as Group,
   basicFields as basicGroupFields,
@@ -19,6 +19,8 @@ import common from '../../../common';
 import { sendNotification as sendPushNotification } from '../../libs/pushNotifications';
 import apiError from '../../libs/apiError';
 import { questActivityWebhook } from '../../libs/webhook';
+
+const analytics = getAnalyticsServiceByEnvironment();
 
 const questScrolls = common.content.quests;
 
@@ -73,7 +75,6 @@ api.inviteToQuest = {
     if (group.type !== 'party') throw new NotAuthorized(res.t('guildQuestsNotSupported'));
     if (!quest) throw new NotFound(apiError('questNotFound', { key: questKey }));
     if (!user.items.quests[questKey]) throw new NotAuthorized(res.t('questNotOwned'));
-    if (user.stats.lvl < quest.lvl) throw new NotAuthorized(res.t('questLevelTooHigh', { level: quest.lvl }));
     if (group.quest.key) throw new NotAuthorized(res.t('questAlreadyUnderway'));
 
     const members = await User.find({
@@ -148,6 +149,13 @@ api.inviteToQuest = {
       { name: 'PARTY_URL', content: '/party' },
     ]);
 
+    // Send webhook to the inviter too
+    questActivityWebhook.send(user, {
+      type: 'questInvited',
+      group,
+      quest,
+    });
+
     // track that the inviting user has accepted the quest
     analytics.track('quest', {
       category: 'behavior',
@@ -157,7 +165,7 @@ api.inviteToQuest = {
       questName: questKey,
       uuid: user._id,
       headers: req.headers,
-    });
+    }, true);
   },
 };
 
@@ -218,7 +226,7 @@ api.acceptQuest = {
       questName: group.quest.key,
       uuid: user._id,
       headers: req.headers,
-    });
+    }, true);
   },
 };
 
@@ -279,7 +287,7 @@ api.rejectQuest = {
       questName: group.quest.key,
       uuid: user._id,
       headers: req.headers,
-    });
+    }, true);
   },
 };
 
@@ -339,7 +347,7 @@ api.forceStart = {
       questName: group.quest.key,
       uuid: user._id,
       headers: req.headers,
-    });
+    }, true);
   },
 };
 
@@ -510,7 +518,6 @@ api.leaveQuest = {
 
     if (!group) throw new NotFound(res.t('groupNotFound'));
     if (group.type !== 'party') throw new NotAuthorized(res.t('guildQuestsNotSupported'));
-    if (!group.quest.active) throw new NotFound(res.t('noActiveQuestToLeave'));
     if (group.quest.leader === user._id) throw new NotAuthorized(res.t('questLeaderCannotLeaveQuest'));
     if (!group.quest.members[user._id]) throw new NotAuthorized(res.t('notPartOfQuest'));
 

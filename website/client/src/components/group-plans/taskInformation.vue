@@ -77,6 +77,7 @@
         :task-list-override="tasksByType[column]"
         :group="group"
         :search-text="searchText"
+        :draggable-override="canCreateTasks"
         @editTask="editTask"
         @loadGroupCompletedTodos="loadGroupCompletedTodos"
         @taskDestroyed="taskDestroyed"
@@ -224,7 +225,10 @@ export default {
       this.group = await this.$store.dispatch('guilds:getGroup', {
         groupId: this.searchId,
       });
-
+      this.$store.dispatch('common:setTitle', {
+        subSection: this.group.name,
+        section: this.$route.path.startsWith('/group-plans') ? this.$t('groupPlans') : this.$t('group'),
+      });
       const members = await this.$store.dispatch('members:getGroupMembers', { groupId: this.searchId });
       this.group.members = members;
 
@@ -292,7 +296,7 @@ export default {
     },
     taskCreated (task) {
       task.group.id = this.group._id;
-      this.tasksByType[task.type].push(task);
+      this.tasksByType[task.type].unshift(task);
     },
     taskEdited (task) {
       const index = findIndex(this.tasksByType[task.type], taskItem => taskItem._id === task._id);

@@ -16,12 +16,14 @@ import seasonalShopConfig from './shops-seasonal.config';
 import featuredItems from '../content/shop-featuredItems';
 
 import getOfficialPinnedItems from './getOfficialPinnedItems';
+import { getClassName } from './getClassName';
 
 const shops = {};
 
 /* Market */
 
 shops.getMarketShop = function getMarketShop (user, language) {
+  const officialPinned = getOfficialPinnedItems(user);
   return {
     identifier: 'market',
     text: i18n.t('market'),
@@ -30,7 +32,9 @@ shops.getMarketShop = function getMarketShop (user, language) {
     categories: shops.getMarketCategories(user, language),
     featured: {
       text: i18n.t('featuredItems'),
-      items: featuredItems.market().map(i => getItemInfo(user, i.type, get(content, i.path))),
+      items: officialPinned.length > 0
+        ? officialPinned.map(i => getItemInfo(user, i.type, get(content, i.path)))
+        : featuredItems.market().map(i => getItemInfo(user, i.type, get(content, i.path))),
     },
   };
 };
@@ -86,11 +90,8 @@ shops.getMarketCategories = function getMarket (user, language) {
   return categories;
 };
 
-function getClassName (classType, language) {
-  if (classType === 'wizard') {
-    return i18n.t('mage', language);
-  }
-  return i18n.t(classType, language);
+function getTranslatedClassName (classType, language) {
+  return i18n.t(getClassName(classType), language);
 }
 
 // TODO Refactor the `.locked` logic
@@ -140,7 +141,7 @@ shops.getMarketGearCategories = function getMarketGear (user, language) {
   for (const classType of content.classes) {
     const category = {
       identifier: classType,
-      text: getClassName(classType, language),
+      text: getTranslatedClassName(classType, language),
     };
 
     const result = filter(content.gear.flat, gearItem => {
@@ -154,6 +155,7 @@ shops.getMarketGearCategories = function getMarketGear (user, language) {
       if (
         gearItem.specialClass === classType
         && user.items.gear.owned[gearItem.key] !== false
+        && gearItem.set === seasonalShopConfig.pinnedSets[gearItem.specialClass]
       ) return gearItem.canOwn(classShift);
       return false;
     });

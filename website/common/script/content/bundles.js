@@ -1,5 +1,9 @@
 import moment from 'moment';
+import find from 'lodash/find';
 import t from './translation';
+import { EVENTS } from './constants';
+
+const CURRENT_EVENT = find(EVENTS, event => moment().isBetween(event.start, event.end));
 
 /*
  ---------------------------------------------------------------
@@ -17,8 +21,9 @@ const bundles = {
       'harpy',
       'owl',
     ],
+    event: EVENTS.potions202105,
     canBuy () {
-      return moment().isBetween('2019-05-09', '2019-06-02');
+      return moment().isBefore(EVENTS.potions202105.end);
     },
     type: 'quests',
     class: 'quest_bundle_featheredFriends',
@@ -33,8 +38,9 @@ const bundles = {
       'turtle',
       'whale',
     ],
+    event: EVENTS.bundle202106,
     canBuy () {
-      return moment().isBetween('2019-07-17', '2019-08-02');
+      return moment().isBefore(EVENTS.bundle202106.end);
     },
     type: 'quests',
     class: 'quest_bundle_splashyPals',
@@ -81,7 +87,7 @@ const bundles = {
       'penguin',
     ],
     canBuy () {
-      return moment().isBetween('2019-12-19', '2020-02-02');
+      return CURRENT_EVENT && CURRENT_EVENT.season === 'winter';
     },
     type: 'quests',
     value: 7,
@@ -156,7 +162,7 @@ const bundles = {
       'yarn',
     ],
     canBuy () {
-      return moment().isBetween('2019-06-10', '2019-07-03');
+      return moment().isBetween('2021-03-16T08:00-05:00', '2021-03-31T20:00-05:00');
     },
     type: 'quests',
     value: 7,
@@ -186,7 +192,7 @@ const bundles = {
       'gryphon',
     ],
     canBuy () {
-      return moment().isBetween('2019-02-19', '2019-03-02');
+      return moment().isBefore('2021-02-28T08:00-05:00');
     },
     type: 'quests',
     value: 7,
@@ -232,6 +238,21 @@ const bundles = {
     ],
     canBuy () {
       return moment().isBetween('2020-05-19', '2020-06-02');
+    },
+    type: 'quests',
+    value: 7,
+  },
+  sandySidekicks: {
+    key: 'sandySidekicks',
+    text: t('sandySidekicksText'),
+    notes: t('sandySidekicksNotes', { date: moment('2020-10-31').format('LL') }),
+    bundleKeys: [
+      'armadillo',
+      'snake',
+      'spider',
+    ],
+    canBuy () {
+      return moment().isBetween('2020-10-13', '2020-11-02');
     },
     type: 'quests',
     value: 7,

@@ -212,6 +212,46 @@ const basicAchievs = {
     titleKey: 'achievementAllThatGlitters',
     textKey: 'achievementAllThatGlittersText',
   },
+  boneCollector: {
+    icon: 'achievement-boneCollector',
+    titleKey: 'achievementBoneCollector',
+    textKey: 'achievementBoneCollectorText',
+  },
+  skeletonCrew: {
+    icon: 'achievement-skeletonCrew',
+    titleKey: 'achievementSkeletonCrew',
+    textKey: 'achievementSkeletonCrewText',
+  },
+  seeingRed: {
+    icon: 'achievement-seeingRed',
+    titleKey: 'achievementSeeingRed',
+    textKey: 'achievementSeeingRedText',
+  },
+  redLetterDay: {
+    icon: 'achievement-redLetterDay',
+    titleKey: 'achievementRedLetterDay',
+    textKey: 'achievementRedLetterDayText',
+  },
+  legendaryBestiary: {
+    icon: 'achievement-legendaryBestiary',
+    titleKey: 'achievementLegendaryBestiary',
+    textKey: 'achievementLegendaryBestiaryText',
+  },
+  seasonalSpecialist: {
+    icon: 'achievement-seasonalSpecialist',
+    titleKey: 'achievementSeasonalSpecialist',
+    textKey: 'achievementSeasonalSpecialistText',
+  },
+  violetsAreBlue: {
+    icon: 'achievement-violetsAreBlue',
+    titleKey: 'achievementVioletsAreBlue',
+    textKey: 'achievementVioletsAreBlueText',
+  },
+  wildBlueYonder: {
+    icon: 'achievement-wildBlueYonder',
+    titleKey: 'achievementWildBlueYonder',
+    textKey: 'achievementWildBlueYonderText',
+  },
 };
 Object.assign(achievementsData, basicAchievs);
 

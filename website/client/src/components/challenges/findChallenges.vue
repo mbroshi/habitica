@@ -31,7 +31,8 @@
       </div>
       <div class="row">
         <div
-          v-if="!loading && filteredChallenges.length === 0"
+          v-if="!loading &&
+          this.filteredChallenges.length === 0"
           class="no-challenges text-center col-md-6 offset-3"
         >
           <h2 v-once>
@@ -41,7 +42,7 @@
       </div>
       <div class="row">
         <div
-          v-for="challenge in filteredChallenges"
+          v-for="challenge in this.filteredChallenges"
           :key="challenge._id"
           class="col-12 col-md-6"
         >
@@ -170,11 +171,12 @@ export default {
   },
   computed: {
     ...mapState({ user: 'user.data' }),
-    filteredChallenges () {
-      return this.challenges;
-    },
   },
   mounted () {
+    this.$store.dispatch('common:setTitle', {
+      subSection: this.$t('findChallenges'),
+      section: this.$t('challenges'),
+    });
     this.loadChallenges();
   },
   methods: {
@@ -189,7 +191,7 @@ export default {
       this.loadChallenges();
     },
     createChallenge () {
-      this.$root.$emit('bv::show::modal', 'challenge-modal');
+      this.$root.$emit('habitica:create-challenge');
     },
     async loadChallenges () {
       this.loading = true;

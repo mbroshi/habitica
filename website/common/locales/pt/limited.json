@@ -1,7 +1,4 @@
 {
-    "limitedEdition": "Edição Limitada",
-    "seasonalEdition": "Edição Sazonal",
-    "winterColors": "Cores de Inverno",
     "annoyingFriends": "Amigos Irritantes",
     "annoyingFriendsText": "Levou bolas de neve <%= count %> vezes dos membros do grupo.",
     "alarmingFriends": "Amigos Alarmantes",
@@ -61,7 +58,6 @@
     "nye2": "Feliz Ano Novo! Que você conquiste vários Dias Perfeitos.",
     "nye3": "Feliz Ano Novo! Que a sua lista de Tarefas Diárias continue curta e doce.",
     "nye4": "Feliz Ano Novo! Que você não seja atacado por um Hipogrifo enfurecido.",
-    "holidayCard": "Recebeu um cartão de feriado comemorativo!",
     "mightyBunnySet": "Coelhinho Poderoso (Guerreiro)",
     "magicMouseSet": "Ratinho Encantado (Mago)",
     "lovingPupSet": "Cãozinho Afetuoso (Curandeiro)",
@@ -150,6 +146,6 @@
     "winterPromoGiftDetails1": "Until January 15th only, when you gift somebody a subscription, you get the same subscription for yourself for free!",
     "winterPromoGiftDetails2": "Please note that if you or your gift recipient already have a recurring subscription, the gifted subscription will only start after that subscription is cancelled or has expired. Thanks so much for your support! <3",
     "discountBundle": "pacote",
-    "g1g1Announcement": "Gift a Subscription, Get a Subscription Free event going on now!",
+    "g1g1Announcement": "<strong>Gift a subscription and get a subscription free</strong> event going on now!",
     "g1g1Details": "Gift a sub to a friend from their profile and you’ll receive the same sub for free!"
 }
